@@ -10,12 +10,10 @@ pmdarima>=2.0.0  # For auto-ARIMA
 
 # Machine Learning & Deep Learning
 scikit-learn>=1.0.0
-tensorflow>=2.10.0  # For LSTM (or use keras separately)
-keras>=2.10.0
+tensorflow>=2.10.0 
 
 # AutoML
 pycaret>=3.0.0
-h2o>=3.36.0  # Alternative to PyCaret (optional)
 
 # Hyperparameter Tuning
 optuna>=3.0.0
@@ -28,3 +26,6 @@ python-dotenv>=0.19.0  # For environment variables (optional)
 # Additional Time Series Tools
 tsfresh>=0.18.0  # For automated feature engineering (optional)
 prophet>=1.1.0  # For Facebook Prophet (optional)
+
+XGBoost>=1.5.0  
+shap

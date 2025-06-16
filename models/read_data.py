@@ -38,28 +38,33 @@ class DataLoader:
         # Ensure holiday_dates is defined (replace with actual holiday list)
         holiday_dates = pd.to_datetime(["2025-01-01", "2025-12-25"])  # Example holidays
         df['Is_holiday'] = df.index.isin(holiday_dates).astype(int)
+        # encoding the conditions columns using one-hot encoding
+        conditions = pd.get_dummies(df['conditions'], drop_first=False, dtype=int)
+        df = pd.concat([df, conditions], axis=1)
 
         return df
+    
+  
+    
 
     @staticmethod
     def load_data_Eda(url):
         df = pd.read_csv(url, sep=',')
-        df['Datetime'] = pd.to_datetime(df['datetime'])
-        df.set_index('Datetime', inplace=True)
+        df['datetime'] = pd.to_datetime(df['datetime'])
+        df.set_index('datetime', inplace=True)
 
         # Handle missing values
         df['Global_active_power'].interpolate(method='linear', inplace=True)
         df.dropna(subset=['Global_active_power'], inplace=True)
 
         df = DataLoader.basic_features_engineering(df)
-
         return df
 
     @staticmethod
     def load_data_Modeling(url):
         df = pd.read_csv(url, sep=',')
-        df['Datetime'] = pd.to_datetime(df['datetime'])
-        df.set_index('Datetime', inplace=True)
+        df['datetime'] = pd.to_datetime(df['datetime'])
+        df.set_index('datetime', inplace=True)
 
         # Handle missing values
         df['Global_active_power'].interpolate(method='linear', inplace=True)
@@ -192,7 +197,10 @@ class OutlaierDetector:
         return cleaned
 
 if __name__ == "__main__":
-    outlier = OutlaierDetector()
+    #outlier = OutlaierDetector()
     # Example usage of DataLoader
-    outliers= outlier.detect_outliers(pd.Series([1, 2, 3, 100, 5, 6]), method='iqr', threshold=1.5, window=30)
-    print("Detected outliers:", outliers)
+    #outliers= outlier.detect_outliers(pd.Series([1, 2, 3, 100, 5, 6]), method='iqr', threshold=1.5, window=30)
+    
+    data_loader = DataLoader()
+    df = data_loader.load_data_Eda(data_loader.url)
+    print(df.head())

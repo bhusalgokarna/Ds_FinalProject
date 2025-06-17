@@ -1,16 +1,27 @@
 
 
+# Time Series Analysis of energy Consumption Data
 
+## Project Overview
+This project performs comprehensive time series forecasting of household power consumption using multiple modeling approaches. Key features include:
 
-#### Time Series Analysis of Power Consumption Data
-In this notebook, I'll perform a comprehensive time series analysis on power consumption data using multiple approaches including ARIMA SARIMAX, RNN(LSTM), and Prophet and XGboost models. I'll also use Optuna for hyperparameter tuning to optimize model performance and I will try to make model using auto-arima approach also to see if its works better then with Optuna?
+- Analysis of temporal patterns and external factors affecting energy usage
+- Implementation of 6 forecasting models (ARIMA, SARIMAX, Prophet, LSTM, XGBoost, AutoARIMA)
+- Hyperparameter optimization using Optuna and feature selection via SHAP/PCA
+- Outlier handling using winsorization method
+- Performance comparison of different modeling approaches
 
-### In this project i have included:
+## Project Structure
+![alt text](image.png)
 
-read_data.py => From data loading to the data preprocessing steps everything is happening here in the different pipeline.
-ts_eda.ipynb => This is the notbook file where i did the EDA(Exploratory Data Analysis).
-ts_model.ipynb => This is the model where i experimented with different model like(ARIMA,SARIMAX, Propet, LSTM, XGboost)
-
+## Dataset Description
+The dataset contains daily power consumption measurements with environmental variables:
+- **Target variable**: `Global_active_power` (household global active power in kW)
+- **Key features**: Temperature, humidity, weather conditions
+- **Sub-metering** (analysis only, not used in models):
+  - `Sub_metering_1`: Kitchen
+  - `Sub_metering_2`: Laundry room
+  - `Sub_metering_3`: Water heater & AC
 
 ## Data Preparation and Exploratory Analysis
 The dataset contains power consumption measurements along with environmental variables like temperature, humidity, and weather conditions. The main variable of interest is `Global_active_power`, which represents the household's global active power consumption in kilowatts. This is the variabble that I am going to forcast in this project.
@@ -21,7 +32,7 @@ The dataset contains power consumption measurements along with environmental var
 - Global_active_power is highly left scewd, so i use log transformation to make it well distributed. Now it is better but we can see there Bimodal distributions.
 
 
-Is the data stationary?
+## Is the data stationary?
 - Needed to make 1 diff to make it stationary using adfuller and kpss method.
     - adf_stationary = adf_result[1] < 0.05
     - kpss_stationary = kpss_result[1] > 0.05
@@ -34,63 +45,67 @@ This function shows that the p=<6 q=<2 and as i already needed to 1st difference
 The decomposition plot breaks down the time series into trend, seasonality, and residual components, giving us insights into the underlying patterns in the data.
 
 
-## Model Implementation and Comparison
-I've implemented five different time series models to predict power consumption:
+## Model Implementation
+### Forecasting Approaches
+1. **ARIMA** (AutoRegressive Integrated Moving Average)
+   - Variants: ARIMA_SHAP (feature selection), ARIMA_PCA (dimensionality reduction)
+   - Parameters: p=[0-6], d=1, q=[0-2]
+   - But optuna choose different parameters..
 
-1. **ARIMA (AutoRegressive Integrated Moving Average)**: A classic time series model that combines autoregressive (AR), differencing (I), and moving average (MA) components.
-I used different approach with Arima model to experiment and to learn and have the best reasult from it.
-- 
+2. **SARIMAX** (Seasonal ARIMA with eXogenous variables)
+   - Incorporates temperature/humidity
+   - Seasonal parameters: P=1, D=1, Q=1, m=7
 
+3. **Prophet**
+   - Automatic seasonality and holiday detection
 
-2. **SARIMAX (Seasonal ARIMA with eXogenous variables)**: Further extends SARIMA by incorporating external variables like temperature and humidity that might influence power consumption.
-3. **Prophet**: Facebook's time series forecasting model that handles seasonality and holidays well, and is robust to missing data and outliers.
-4. **RNN (LSTM)**: A deep learning approach using Long Short-Term Memory networks, which can capture complex non-linear patterns in the data.
+4. **LSTM** (Long Short-Term Memory)
+   # Optimized LSTM Architecture
+   - Sequential([
+       LSTM(units, return_sequences=True, input_shape=(30, n_features)),
+       BatchNormalization(),
+       Dropout(0.3),
+       LSTM(units//2),
+       BatchNormalization(),
+       Dropout(0.3),
+       Dense(1)
+   ])
+    - 30-day lookback window
+    - Optuna-tuned hyperparameters
+    - Early stopping and learning rate reduction
 
+5.  **XGBoost**
+    - SHAP for feature selection (top 20 features)
+    - Optuna-optimized hyperparameters
+
+6.  **AutoARIMA**
+    - Automated parameter search
 
 For each model, I have used Optuna for hyperparameter tuning to find the optimal configuration. This automated approach helps us find the best parameters without manual trial and error.
 
-## In-Depth Analysis and Insights
-
-### Temporal Patterns in Power Consumption
-
-1. **Daily Patterns**: Power consumption shows a clear daily cycle, with peaks in the morning and evening when people are typically at home and active. The lowest consumption occurs during the night when most people are sleeping.
-2. **Weekly Patterns**: There's a noticeable difference between weekdays and weekends. Weekends showed higher consumption as people spend more time at home.
-3. **Seasonal Patterns**: Power consumption is higher during winter months (December-February) and lower during summer months (June-August). This is likely due to heating requirements during colder months.
-
-
-### Environmental Factors
-1. **Temperature**: There's a negative correlation(-12) between temperature and power consumption, confirming that colder temperatures lead to higher power usage, primarily for heating.
-2. **Humidity**: Humidity shows a weaker correlation with power consumption compared to temperature, but still plays a role in overall energy usage patterns. But temperature and humidity themself have also negative strong  correlation.
-
-
-### Sub-metering Analysis
-1. **Distribution**: The water heater and air conditioning system (Sub_metering_3) consume the largest portion of electricity, followed by the laundry room (Sub_metering_2) and kitchen (Sub_metering_1).
-2. **Seasonal Variations**: The water heater and AC show the most significant seasonal variations, with higher usage during winter months.
-
-
-### Anomaly Detection
-
-The IQR method identified several anomalies in power consumption, which could represent:
-- Unusually high consumption during special events or extreme weather
-- Unusually low consumption during vacations or power outages
-- Potential measurement errors or equipment malfunctions
-
-
-### Feature Importance
-The Random Forest analysis revealed that the most important features for predicting power consumption are:
-1. Temperature
-2. Month (seasonality)
-3. Day of week
-4. Seasion
-5. other lags value....
-6. Holidays 
+![alt text](image-1.png)
 
 
 
+## Key Insights
+#### XGBoost Performance
+    - XGBoost outperformed all other models in terms of both accuracy and computational efficiency.
 
+#### Feature Engineering Impact
+    - Feature engineering significantly improved the performance of traditional models:
 
-## Conclusion
+        - SHAP-selected features allowed the model to focus on the most influential inputs, avoiding the inclusion of irrelevant or redundant - features.
 
-This comprehensive time series analysis of power consumption data has revealed significant patterns and relationships that can be leveraged for accurate forecasting and energy optimization. The comparison of multiple modeling approaches showed that while deep learning models like LSTM can achieve the highest accuracy, simpler models like Prophet offer a good balance of performance and interpretability.
+        - PCA (Principal Component Analysis) offered moderate performance improvements by reducing dimensionality and mitigating multicollinearity through transformation into orthogonal components.
 
-The analysis confirmed the strong influence of temporal patterns (daily, weekly, seasonal) and environmental factors (especially temperature) on power consumption. These insights can be used to develop more efficient energy management strategies and improve forecasting accuracy.
+#### LSTM Model Challenges
+
+    - Despite extensive architectural tuning, the LSTM model underperformed and did not meet expectations.
+
+    - A likely reason for this is the relatively small dataset size, which may have limited the LSTM’s ability to learn long-term dependencies.
+
+### Temporal Patterns in Energy Consumption
+
+    - Temperature shows a slight negative correlation (-0.12) with energy consumption. While weak, this suggests that as temperature increases, energy usage tends to decrease. This is supported by seasonal observations—winter energy consumption increases by 15–20% compared to warmer months.
+
+    - Clear weekly and seasonal patterns were observed: energy consumption spikes on weekends, especially on Sundays.

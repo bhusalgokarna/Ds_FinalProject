@@ -21,10 +21,7 @@ optuna>=3.0.0
 # Utilities
 jupyter>=1.0.0  # For Jupyter Notebook
 ipykernel>=6.0.0  # For Jupyter kernel
-python-dotenv>=0.19.0  # For environment variables (optional)
-
 # Additional Time Series Tools
-tsfresh>=0.18.0  # For automated feature engineering (optional)
 prophet>=1.1.0  # For Facebook Prophet (optional)
 
 XGBoost>=1.5.0  

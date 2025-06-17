@@ -24,25 +24,35 @@ The dataset contains daily power consumption measurements with environmental var
   - `Sub_metering_3`: Water heater & AC
 
 ## Data Preparation and Exploratory Analysis
-The dataset contains power consumption measurements along with environmental variables like temperature, humidity, and weather conditions. The main variable of interest is `Global_active_power`, which represents the household's global active power consumption in kilowatts. This is the variabble that I am going to forcast in this project.
+The dataset includes household power consumption measurements along with environmental variables such as temperature, humidity, and weather conditions. The primary variable of interest is Global_active_power, which represents global active power consumption in kilowatts. This is the target variable I aim to forecast in this project.
 
-### From EDA to the Forecasting models
-- The data is time-indexed, making it suitable for time series analysis.
-- There are multiple variables that could influence power consumption, Many of power related feature are highly depedent features, so i avoid those feature to not have bias. I use only the past values of the Global active power and other environment related features to forcast.
-- Global_active_power is highly left scewd, so i use log transformation to make it well distributed. Now it is better but we can see there Bimodal distributions.
+### From EDA to Forecasting models
+- The dataset is time-indexed, making it suitable for time series forecasting.
+- Several power-related features exhibit high multicollinearity. To avoid introducing bias, I excluded those highly dependent variables and retained only:
+    - Historical values of Global_active_power
+    - Relevant environmental features
+- The Global_active_power distribution is heavily left-skewed. To address this, I applied a log transformation, which improved the distribution. However, even after transformation, a bimodal pattern remains visible.
 
 
-## Is the data stationary?
-- Needed to make 1 diff to make it stationary using adfuller and kpss method.
-    - adf_stationary = adf_result[1] < 0.05
-    - kpss_stationary = kpss_result[1] > 0.05
+## Is the Data stationary?
+- To assess stationarity, I applied both the ADF (Augmented Dickey-Fuller) and KPSS (Kwiatkowski–Phillips–Schmidt–Shin) tests. A single differencing was sufficient to achieve stationarity, with the following interpretation:
+    - adf_stationary = adf_result[1] < 0.05          **Reject null → stationary**
+    - kpss_stationary = kpss_result[1] > 0.05        **Fail to reject null → stationary**
 
-### ACF and PACF function
-The ACF (Autocorrelation Function) and PACF (Partial Autocorrelation Function) plots help identify potential AR and MA terms for our ARIMA-based models.
+### ACF and PACF Analysis
+- The Autocorrelation Function (ACF) and Partial Autocorrelation Function (PACF) plots were used to identify appropriate ARIMA model parameters:
+    - ACF suggests MA terms (q ≤ 2)
+    - PACF suggests AR terms (p ≤ 6)
+    - Since differencing was required, we set d = 1
 
-This function shows that the p=<6 q=<2 and as i already needed to 1st difference to our target d=1
+Thus, an initial ARIMA model configuration could be: ARIMA(p=6, d=1, q=2)
 
-The decomposition plot breaks down the time series into trend, seasonality, and residual components, giving us insights into the underlying patterns in the data.
+- Additionally, the seasonal decomposition of the time series provided useful insights by isolating:
+    - Trend
+    - Seasonal patterns
+    - Residual noise
+
+This analysis supports the model selection and helps validate temporal assumptions.
 
 
 ## Model Implementation
